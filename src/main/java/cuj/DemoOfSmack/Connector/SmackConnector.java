@@ -31,6 +31,7 @@ import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
@@ -166,8 +167,11 @@ public class SmackConnector {
    			public void entriesAdded(Collection<String> addresses) {
       			if(a==0)
       			{
-      				System.out.println("好友列表  ： "+addresses);	
-      				a++;
+      				for(String friend : addresses)
+          			{
+          				System.out.println("好友 : "+friend);
+          			}
+      				a=1;
       			}
       			else
       			{
@@ -187,6 +191,11 @@ public class SmackConnector {
    			@Override
    			public void presenceChanged(Presence presence) {
    				System.out.println(presence.getTo()+"  的好友:  "+presence.getFrom() +"   状态为 ：  "+ presence.getType());
+   				if(presence.getType().equals(Presence.Type.unavailable))
+   				{
+   					//TODO
+   					System.out.println("好友"+presence.getFrom()+"掉线");
+   				}
    			}	 
       	 });
 	}
@@ -317,11 +326,25 @@ class SetMassageThread extends Thread
 	        }
 	        else if(message.equals("2"))
 	        {
-	        	SmackConnector.addFriends("test@cujamin-pc","test");
+	        	SmackConnector.addFriends(to,to);
 	        }
 	        else if(message.equals("3"))
 	        {
-	        	SmackConnector.delFriends("test@cujamin-pc");
+	        	int a = 0;
+	        	Collection<RosterEntry> rosters = Roster.getInstanceFor(SmackConnector.connection).getEntries(); 
+	        	for(RosterEntry  rosterEntry : rosters)
+	        	{
+	        		if(rosterEntry.equals(SmackConnector.roster.getEntry(to)))
+	        		{
+	        			a = 1;
+	        			SmackConnector.delFriends(to);
+	        			break;
+	        		}
+	        	}
+        		if(a == 0)
+        		{
+        			System.out.println("没有找到该好友："+to);
+        		}
 	        }
 	        else postData( to , message , setMassageManager);
 	    }  
